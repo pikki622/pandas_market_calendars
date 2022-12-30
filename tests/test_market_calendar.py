@@ -292,13 +292,19 @@ def test_add_change_remove_time_w_open_close_map():
     ## Non standard time
 
     cal.add_time("newtime", time(10))
-    assert not "newtime" in cal.open_close_map and "newtime" in cal.regular_market_times
+    assert (
+        "newtime" not in cal.open_close_map
+        and "newtime" in cal.regular_market_times
+    )
 
     cal.remove_time("newtime")
-    assert not "newtime" in cal.regular_market_times
+    assert "newtime" not in cal.regular_market_times
 
     cal.add_time("newtime", time(10), opens= None)
-    assert not "newtime" in cal.open_close_map and "newtime" in cal.regular_market_times
+    assert (
+        "newtime" not in cal.open_close_map
+        and "newtime" in cal.regular_market_times
+    )
 
     cal.change_time("newtime", time(11), opens= False)
     assert cal.open_close_map["newtime"] is False
@@ -312,14 +318,20 @@ def test_add_change_remove_time_w_open_close_map():
     ## Standard time
 
     cal.remove_time("market_close")
-    assert not "market_close" in cal.open_close_map and not "market_close" in cal.regular_market_times
+    assert (
+        "market_close" not in cal.open_close_map
+        and "market_close" not in cal.regular_market_times
+    )
 
     cal.add_time("market_close", time(15))
     assert "market_close" in cal.open_close_map and "market_close" in cal.regular_market_times
 
     cal.remove_time("market_close")
     cal.add_time("market_close", time(15), opens= None)
-    assert not "market_close" in cal.open_close_map and "market_close" in cal.regular_market_times
+    assert (
+        "market_close" not in cal.open_close_map
+        and "market_close" in cal.regular_market_times
+    )
 
     cal.change_time("market_close", time(16), opens= False)
     assert cal.open_close_map["market_close"] is False
@@ -337,7 +349,7 @@ def test_open_close_map():
     assert FakeCalendar.open_close_map == {"market_open": True, "market_close": False,
                                            "break_start": False, "break_end": True,
                                            "pre": True, "post": False}
-    assert not cal.open_close_map is FakeCalendar.open_close_map
+    assert cal.open_close_map is not FakeCalendar.open_close_map
     assert cal.open_close_map == FakeCalendar.open_close_map
 
     class WrongCal(FakeCalendar):
@@ -368,8 +380,7 @@ def test_dunder_methods():
     assert cal["market_open"] == time(9)
 
 def test_default_calendars():
-    for name in filter(lambda n: not n[:4] in ("Test", "_Tst"),
-                       get_calendar_names()):
+    for name in filter(lambda n: n[:4] not in ("Test", "_Tst"), get_calendar_names()):
         # XKRX has discontinued market times, which should raise a warning
         if name == "XKRX":
             with pytest.warns(UserWarning):

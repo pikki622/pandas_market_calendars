@@ -416,9 +416,6 @@ TZ = 'America/Chicago'
     ids=lambda x: f'{x[0]} {x[1]}',
 
 )
-
-
-
 def test_2020_through_2022_and_prior_holidays(day_status):
     day_str = day_status[0]
     day_ts = pd.Timestamp(day_str, tz=TZ)
@@ -428,17 +425,17 @@ def test_2020_through_2022_and_prior_holidays(day_status):
     under_test = CMEGlobexFixedIncomeCalendar()
     schedule = under_test.schedule(f'{year}-01-01', f'{year+1}-01-01', tz=TZ)
 
-    if expected_status == 'open':
+    if expected_status == 'closed':
+        assert day_ts.tz_localize(None) not in schedule.index
+    elif expected_status == 'open':
         s = schedule.loc[day_str]
         assert s['market_open'] == day_ts + Day(-1) + Hour(18) + Minute(0)
         assert s['market_close'] == day_ts + Day(0) + Hour(17) + Minute(0)
-    elif expected_status == 'closed':
-        assert day_ts.tz_localize(None) not in schedule.index
     else:
         s = schedule.loc[day_str]
-        hour = int(expected_status[0:2])
-        minute = int(expected_status[2:4])
         assert s['market_open'] == day_ts + Day(-1) + Hour(18)
+        hour = int(expected_status[:2])
+        minute = int(expected_status[2:4])
         assert s['market_close'] == day_ts + Day(0) + Hour(hour) + Minute(minute)
 
 

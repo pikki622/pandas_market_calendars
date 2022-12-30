@@ -12,18 +12,13 @@ from .market_calendar import MarketCalendar
 
 
 def process_date(dt, mapping=None, func=None, delta=None, offset=None):
-    if mapping and (dt.year in mapping):
-        new_dt = mapping[dt.year]
-    else:
-        new_dt = dt
+    new_dt = mapping[dt.year] if mapping and (dt.year in mapping) else dt
     if delta:
         new_dt = new_dt + timedelta(delta)
     dow = new_dt.weekday()
     if dow == 6 and offset:  # sunday
         new_dt = new_dt + timedelta(offset)
-    if func:
-        return func(new_dt)
-    return new_dt
+    return func(new_dt) if func else new_dt
 
 
 def process_queen_birthday(dt):

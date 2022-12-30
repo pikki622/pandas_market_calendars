@@ -251,9 +251,7 @@ def second_day_in_lieu(dt):
     dow = dt.weekday()
     if dow == 0:  # Holiday is Sunday, use Saturday
         return dt - timedelta(2)
-    elif dow == 1:  # Holiday is Monday, use Saturday
-        return dt - timedelta(3)
-    elif dow == 2:  # Holiday is Tuesday, use Sunday
+    elif dow in [1, 2]:  # Holiday is Monday, use Saturday
         return dt - timedelta(3)
     elif dow == 3:  # Holiday is Wednesday, use Saturday
         return dt - timedelta(5)
@@ -267,9 +265,7 @@ def third_day_in_lieu(dt):
         return dt - timedelta(1)
     elif dow == 1:  # Holiday is Sunday, use Sunday
         return dt - timedelta(2)
-    elif dow == 2:  # Holiday is Monday, use Sunday
-        return dt - timedelta(3)
-    elif dow == 3:  # Holiday is Tuesday, use Monday
+    elif dow in [2, 3]:  # Holiday is Monday, use Sunday
         return dt - timedelta(3)
     elif dow == 4:  # Holiday is Wednesday, use Sunday
         return dt - timedelta(5)
@@ -278,13 +274,7 @@ def third_day_in_lieu(dt):
 
 
 def lunisolar(dt, mapping, func=None, delta=None):
-    if mapping and (dt.year in mapping):
-        new_dt = mapping[dt.year]
-    else:
-        new_dt = dt
+    new_dt = mapping[dt.year] if mapping and (dt.year in mapping) else dt
     if delta:
         new_dt = new_dt + timedelta(delta)
-    if func:
-        return func(new_dt)
-    else:
-        return new_dt
+    return func(new_dt) if func else new_dt

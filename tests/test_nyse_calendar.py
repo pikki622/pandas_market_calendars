@@ -14,7 +14,10 @@ def test_custom_open_close():
     assert sched.market_open.iat[0] == pd.Timestamp("2021-08-16 13:00:00+00:00")
     assert sched.market_close.iat[0] == pd.Timestamp("2021-08-16 14:00:00+00:00")
 
-    assert not NYSEExchangeCalendar.regular_market_times is cal.regular_market_times
+    assert (
+        NYSEExchangeCalendar.regular_market_times
+        is not cal.regular_market_times
+    )
 
 @pytest.mark.parametrize("dates, results", [
     (("1984-12-30", "1985-01-03"), ['1984-12-31 10:00:00', '1985-01-02 09:30:00', '1985-01-03 09:30:00']),
@@ -79,13 +82,19 @@ def test_days_at_time_custom():
 def test_valid_days():
     cal = NYSEExchangeCalendar()
 
-    assert not cal.valid_days("1999-01-01", "2014-01-01") is None
+    assert cal.valid_days("1999-01-01", "2014-01-01") is not None
     # used to raise an error because tz= None
-    assert not cal.valid_days("1999-01-01", "2014-01-01", tz= None) is None
+    assert cal.valid_days("1999-01-01", "2014-01-01", tz= None) is not None
 
-    assert not cal.special_dates("market_close", "1999-01-01", "2014-01-01", False) is None
+    assert (
+        cal.special_dates("market_close", "1999-01-01", "2014-01-01", False)
+        is not None
+    )
     # calls valid_days internally
-    assert not cal.special_dates("market_close", "1999-01-01", "2014-01-01", True) is None
+    assert (
+        cal.special_dates("market_close", "1999-01-01", "2014-01-01", True)
+        is not None
+    )
 
     start, end = "2000-01-01", "2000-01-30"
     valid = cal.valid_days(start, end, tz= "UTC").tz_localize(None)

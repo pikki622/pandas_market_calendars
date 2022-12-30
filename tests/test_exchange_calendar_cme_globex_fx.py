@@ -94,15 +94,15 @@ def test_2020_through_2022_and_prior_holidays(day_status):
     under_test = CMEGlobexFXExchangeCalendar()
     schedule = under_test.schedule('2020-01-01', '2023-02-28', tz=TZ)
 
-    if expected_status == 'open':
+    if expected_status == 'closed':
+        assert day_ts.tz_localize(None) not in schedule.index
+    elif expected_status == 'open':
         s = schedule.loc[day_str]
         assert s['market_open'] == day_ts + Day(-1) + Hour(17) + Minute(0)
         assert s['market_close'] == day_ts + Day(0) + Hour(16) + Minute(0)
-    elif expected_status == 'closed':
-        assert day_ts.tz_localize(None) not in schedule.index
     else:
         s = schedule.loc[day_str]
-        hour = int(expected_status[0:2])
-        minute = int(expected_status[2:4])
         assert s['market_open'] == day_ts + Day(-1) + Hour(17)
+        hour = int(expected_status[:2])
+        minute = int(expected_status[2:4])
         assert s['market_close'] == day_ts + Day(0) + Hour(hour) + Minute(minute)

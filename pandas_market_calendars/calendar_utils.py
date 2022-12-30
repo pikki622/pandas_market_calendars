@@ -92,9 +92,9 @@ class _date_range:
     """
 
     def __init__(self, schedule = None, frequency= None, closed='right', force_close=True):
-        if not closed in ("left", "right", "both", None):
+        if closed not in ("left", "right", "both", None):
             raise ValueError("closed must be 'left', 'right', 'both' or None.")
-        elif not force_close in (True, False, None):
+        elif force_close not in (True, False, None):
             raise ValueError("force_close must be True, False or None.")
 
         self.closed = closed
@@ -131,9 +131,9 @@ class _date_range:
             end_times = schedule.start + num_bars * self.frequency
 
             if end_times.gt(schedule.start.shift(-1)).any():
-                raise ValueError(f"The chosen frequency will lead to overlaps in the calculated index. "
-                                 f"Either choose a higher frequency or avoid setting force_close to None "
-                                 f"when setting closed to 'right', 'both' or None.")
+                raise ValueError(
+                    "The chosen frequency will lead to overlaps in the calculated index. Either choose a higher frequency or avoid setting force_close to None when setting closed to 'right', 'both' or None."
+                )
 
     def _check_disappearing_session(self, schedule):
         """checks if requested frequency and schedule would lead to lost trading sessions.
@@ -141,13 +141,15 @@ class _date_range:
 
         :param schedule: pd.DataFrame with first column: 'start' and second column: 'end'
         :raises UserWarning:"""
-        if self.force_close is False and self.closed == "right":
-
-            if (schedule.end- schedule.start).lt(self.frequency).any():
-                warnings.warn("An interval of the chosen frequency is larger than some of the trading sessions, "
-                          "while closed== 'right' and force_close is False. This will make those trading sessions "
-                          "disappear. Use a higher frequency or change the values of closed/force_close, to "
-                          "keep this from happening.")
+        if (
+            self.force_close is False
+            and self.closed == "right"
+            and (schedule.end - schedule.start).lt(self.frequency).any()
+        ):
+            warnings.warn("An interval of the chosen frequency is larger than some of the trading sessions, "
+                      "while closed== 'right' and force_close is False. This will make those trading sessions "
+                      "disappear. Use a higher frequency or change the values of closed/force_close, to "
+                      "keep this from happening.")
 
     def _calc_num_bars(self, schedule):
         """calculate the number of timestamps needed for each trading session.
@@ -176,7 +178,7 @@ class _date_range:
             opens = schedule.start.repeat(num_bars)   # add row but dont shift up
             time_series = (opens.groupby(opens.index).cumcount()) * self.frequency + opens
 
-        if not self.force_close is None:
+        if self.force_close is not None:
             time_series = time_series[time_series.le(schedule.end.repeat(num_bars))]
             if self.force_close:
                 time_series = pd.concat([time_series, schedule.end]).sort_values()

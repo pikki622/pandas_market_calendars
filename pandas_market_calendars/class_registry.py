@@ -13,7 +13,8 @@ def _regmeta_instance_factory(cls, name, *args, **kwargs):
         class_ = cls._regmeta_class_registry[name]
     except KeyError:
         raise RuntimeError(
-            'Class {} is not one of the registered classes: {}'.format(name, cls._regmeta_class_registry.keys()))
+            f'Class {name} is not one of the registered classes: {cls._regmeta_class_registry.keys()}'
+        )
     return class_(*args, **kwargs)
 
 def _regmeta_register_class(cls, regcls, name):
@@ -22,12 +23,9 @@ def _regmeta_register_class(cls, regcls, name):
     :param regcls(class): class to be registered
     :param name(str): name of the class to be registered
     """
-    if hasattr(regcls, 'aliases'):
-        if regcls.aliases:
-            for alias in regcls.aliases:
-                cls._regmeta_class_registry[alias] = regcls
-        else:
-            cls._regmeta_class_registry[name] = regcls
+    if hasattr(regcls, 'aliases') and regcls.aliases:
+        for alias in regcls.aliases:
+            cls._regmeta_class_registry[alias] = regcls
     else:
         cls._regmeta_class_registry[name] = regcls
 
@@ -45,23 +43,23 @@ class RegisteryMeta(type):
 
         return cls
 
-    def __init__(cls, name, bases, attr):
-        if not inspect.isabstract(cls):
-            _regmeta_register_class(cls, cls, name)
+    def __init__(self, name, bases, attr):
+        if not inspect.isabstract(self):
+            _regmeta_register_class(self, self, name)
             for b in bases:
                 if hasattr(b, '_regmeta_class_registry'):
-                    _regmeta_register_class(b, cls, name)
+                    _regmeta_register_class(b, self, name)
 
-        super(RegisteryMeta, cls).__init__(name, bases, attr)
+        super(RegisteryMeta, self).__init__(name, bases, attr)
 
-        cls.regular_market_times = ProtectedDict(cls.regular_market_times)
-        cls.open_close_map = ProtectedDict(cls.open_close_map)
+        self.regular_market_times = ProtectedDict(self.regular_market_times)
+        self.open_close_map = ProtectedDict(self.open_close_map)
 
-        cls.special_market_open = cls.special_opens
-        cls.special_market_open_adhoc = cls.special_opens_adhoc
+        self.special_market_open = self.special_opens
+        self.special_market_open_adhoc = self.special_opens_adhoc
 
-        cls.special_market_close = cls.special_closes
-        cls.special_market_close_adhoc = cls.special_closes_adhoc
+        self.special_market_close = self.special_closes
+        self.special_market_close_adhoc = self.special_closes_adhoc
 
 
 class ProtectedDict(dict):
@@ -93,7 +91,7 @@ class ProtectedDict(dict):
                         "using .change_time, .add_time or .remove_time")
 
     def __repr__(self):
-        return self.__class__.__name__+ "(" + super().__repr__() + ")"
+        return f"{self.__class__.__name__}({super().__repr__()})"
 
     def __str__(self):
         try:

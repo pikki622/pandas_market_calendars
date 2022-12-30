@@ -95,10 +95,7 @@ GoodFridayBefore2021 = Holiday(
 easter = Easter()
 daymin2 = Day(-2)
 def not_0815_close(dt):
-    if dt.year in (2010, 2012, 2015):
-       return None
-    else:
-        return dt + easter + daymin2
+    return None if dt.year in (2010, 2012, 2015) else dt + easter + daymin2
 
 GoodFridayBefore2021NotEarlyClose = Holiday(
     "Good Friday",

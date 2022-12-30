@@ -144,9 +144,7 @@ WeekendBoxingDay = Holiday(
 
 # One-off holiday additions and removals in England
 
-UniqueCloses = []
-# VE-Day Anniversary
-UniqueCloses.append(pd.Timestamp("1995-05-08", tz='UTC'))  # 50th Anniversary
+UniqueCloses = [pd.Timestamp("1995-05-08", tz='UTC')]
 UniqueCloses.append(pd.Timestamp("2020-05-08", tz='UTC'))  # 75th Anniversary
 
 # Queen Elizabeth II Jubilees

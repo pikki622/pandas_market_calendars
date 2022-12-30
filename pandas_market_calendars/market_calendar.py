@@ -86,10 +86,10 @@ class MarketCalendar(metaclass=MarketCalendarMeta):
         self.open_close_map = self.open_close_map.copy()
         self._customized_market_times = []
 
-        if not open_time is None:
+        if open_time is not None:
             self.change_time("market_open", open_time)
 
-        if not close_time is None:
+        if close_time is not None:
             self.change_time("market_close", close_time)
 
         if not hasattr(self, "_market_times"):
@@ -157,17 +157,14 @@ class MarketCalendar(metaclass=MarketCalendarMeta):
 
         if isinstance(times, (tuple, list)): # passed a tuple
             if not isinstance(times[0], (tuple, list)): # doesn't have a tuple inside
-                if times[0] is None:   # seems to be a tuple indicating starting time
-                    times = (times,)
-                else: # must be a tuple with: (time, offset)
-                    times = ((None, times[0], times[1]),)
+                times = (times, ) if times[0] is None else ((None, times[0], times[1]), )
         else: # should be a datetime.time object
             times = ((None, times),)
 
         ln = len(times)
         for i, t in enumerate(times):
             try:
-                assert t[0] is None or isinstance(t[0], str) or isinstance(t[0], pd.Timestamp)
+                assert t[0] is None or isinstance(t[0], (str, pd.Timestamp))
                 assert isinstance(t[1], time) or (ln > 1 and i == ln-1 and t[1] is None)
                 assert isinstance(self._off(t), int)
             except AssertionError:
@@ -222,8 +219,9 @@ class MarketCalendar(metaclass=MarketCalendarMeta):
         :param opens: see .change_time docstring
         :return: None
         """
-        assert not market_time in self.regular_market_times, f"{market_time} is already in regular_market_times:" \
-                                                             f"\n{self._market_times}"
+        assert (
+            market_time not in self.regular_market_times
+        ), f"{market_time} is already in regular_market_times:\n{self._market_times}"
 
         return self._set_time(market_time, times, opens)
 
@@ -267,8 +265,7 @@ class MarketCalendar(metaclass=MarketCalendarMeta):
             else:
                 raise e
 
-        if all_times: return times
-        return times[-1][1].replace(tzinfo= self.tz)
+        return times if all_times else times[-1][1].replace(tzinfo= self.tz)
 
     def get_time_on(self, market_time, date):
         times = self.get_time(market_time, all_times= True)
@@ -444,8 +441,7 @@ class MarketCalendar(metaclass=MarketCalendarMeta):
         columns = []
         for i in range(1, intr.shape[1] // 2 + 1):
             i = str(i)
-            columns.append("interruption_start_" + i)
-            columns.append("interruption_end_" + i)
+            columns.extend((f"interruption_start_{i}", f"interruption_end_{i}"))
         intr.columns = columns
         intr.index.name = None
 
@@ -528,13 +524,10 @@ class MarketCalendar(metaclass=MarketCalendarMeta):
 
         (This is shared logic for computing special opens and special closes.)
         """
-        indexes = [
-                self.days_at_time(self._tryholidays(calendar, start, end), time_)
-                      for time_, calendar in calendars
-             ] + [
-                self.days_at_time(dates, time_) for time_, dates in ad_hoc_dates
-            ]
-        if indexes:
+        if indexes := [
+            self.days_at_time(self._tryholidays(calendar, start, end), time_)
+            for time_, calendar in calendars
+        ] + [self.days_at_time(dates, time_) for time_, dates in ad_hoc_dates]:
             dates = pd.concat(indexes).sort_index().drop_duplicates()
             return dates.loc[start: end.replace(hour=23, minute=59, second=59)]
 
@@ -605,7 +598,7 @@ class MarketCalendar(metaclass=MarketCalendarMeta):
             return pd.DataFrame(columns=market_times, index=pd.DatetimeIndex([], freq='C'))
 
         _adj_others = force_special_times is True
-        _adj_col = not force_special_times is None
+        _adj_col = force_special_times is not None
         _open_adj = _close_adj = []
 
         schedule = pd.DataFrame()
@@ -693,8 +686,7 @@ class MarketCalendar(metaclass=MarketCalendarMeta):
         day.loc[day.eq("market_close") & day.shift(-1).eq("post")] = "market_open"
         day = day.replace(self.open_close_map)
 
-        if include_close: below = day.index < timestamp
-        else: below = day.index <= timestamp
+        below = day.index < timestamp if include_close else day.index <= timestamp
         return bool(day[below].iat[-1]) # returns numpy.bool_ if not bool(...)
 
 
@@ -755,13 +747,12 @@ class MarketCalendar(metaclass=MarketCalendarMeta):
         return schedule[self.is_different(schedule["market_open"], pd.Series.gt)]
 
     def __getitem__(self, item):
-        if isinstance(item, (tuple, list)):
-            if item[1] == "all":
-                return self.get_time(item[0], all_times= True)
-            else:
-                return self.get_time_on(item[0], item[1])
-        else:
+        if not isinstance(item, (tuple, list)):
             return self.get_time(item)
+        if item[1] == "all":
+            return self.get_time(item[0], all_times= True)
+        else:
+            return self.get_time_on(item[0], item[1])
 
     def __setitem__(self, key, value):
         return self.add_time(key, value)

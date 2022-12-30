@@ -59,7 +59,4 @@ BoxingDay = Holiday(
 
 # One-off holiday additions and removals in Australia
 
-UniqueCloses = []
-
-# National Day of Mourning for Her Majesty the Queen
-UniqueCloses.append(Timestamp("2022-09-22", tz='UTC'))
+UniqueCloses = [Timestamp("2022-09-22", tz='UTC')]
